@@ -1,18 +1,25 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
+import * as event from './event'
+import * as version from './version'
+import * as git from './git'
+// import {wait} from './wait'
 
-async function run(): Promise<void> {
+export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+    const token = core.getInput('repo-token')
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    const tag = event.getCreatedTag()
 
-    core.setOutput('time', new Date().toTimeString())
+    if (tag && version.isSemVer(tag)) {
+      const changelog = await globalThis.getChangesIntroducedByTag(tag)
+
+      releaseUrl = await github.createReleaseDraft(tag, token, changelog)
+      
+    }
+
+    core.setOutput('release_url', 'https://example.com')
   } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
+    core.setFailed(error.message)
   }
 }
 
